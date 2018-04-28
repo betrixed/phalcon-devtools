@@ -1,0 +1,72 @@
+
+[_default]
+controller = 'index'
+
+[_default.index]
+pattern = '/'
+methods = ['GET']
+
+[info]
+controller = 'system_info'
+
+[info.index]
+pattern = '/'
+methods = ['GET']
+
+[migrations]
+group = true
+
+[migrations.index]
+pattern = 'list'
+methods = ['GET']
+
+[migrations.generate]
+methods = ['GET', 'POST']
+
+[migrations.run]
+methods = ['GET', 'POST']
+
+[models]
+group = true
+
+[models.index]
+pattern = 'list'
+methods = ['GET']
+
+[models.edit]
+pattern = 'edit?file={file:[\w\d_.~%-]+}'
+methods = ['GET']
+params = {file = 1}
+
+[models.view]
+pattern = 'view/?file={file:[\w\d_.~%-]+}'
+methods = ['GET']
+params = {file = 1}
+
+[models.update]
+methods = ['POST','PUT']
+
+[models.generate]
+methods = ['GET','PUT']
+
+[controllers]
+group = true
+
+[controllers.index]
+pattern = 'list'
+methods = ['GET']
+
+[controllers.edit]
+pattern = 'edit'
+methods = ['GET']
+
+[controllers.view]
+pattern = 'view/?file={file:[\w\d_.~%-]+}'
+methods = ['GET']
+params = {file = 1}
+
+[controllers.update]
+methods = ['POST', 'PUT']
+
+[controllers.generate]
+methods = ['GET', 'POST']

@@ -70,14 +70,13 @@ defined('APPLICATION_ENV') || define('APPLICATION_ENV', getenv('APPLICATION_ENV'
 require PTOOLSPATH . '/bootstrap/autoload.php';
 
 // Register our stuff
-defined('MODTOOLS_DIR') || define('MODTOOLS_DIR',  PTOOLSPATH . DS  . dir_sep('scripts/Phalcon/Web/ModTools'));
+defined('MODTOOLS_DIR') || define('MODTOOLS_DIR',  PTOOLSPATH . '/scripts/Phalcon/Web/ModTools/');
 
 // Define for template URLs could be module  name or could be '/webtools.php?_url=/' or just '/'
 defined('URL_MODFIX') || define('URL_MODFIX' , '/' . $moduleConfig->name . '/');
 // Finally, 
 (new \Phalcon\Loader)->registerNamespaces([
         'ModTools' => MODTOOLS_DIR,
-        'Phalcon\Bot' => PBOT_DIR,
     ])
     ->register();
 

@@ -21,7 +21,7 @@
 
 namespace ModTools\Controllers;
 
-use Phalcon\Migrations;
+use Mod\Schema\Migrations;
 use DirectoryIterator;
 use Phalcon\Builder\BuilderException;
 
@@ -59,7 +59,7 @@ class MigrationsController extends BaseController
                 }
 
                 foreach (new DirectoryIterator($version->getPathname()) as $file) {
-                    if ($file->isDot() || $file->isDir() || 'php' !== strtolower($file->getExtension())) {
+                    if ($file->isDot() || $file->isDir() || 'toml' !== strtolower($file->getExtension())) {
                         continue;
                     }
 
@@ -148,25 +148,38 @@ class MigrationsController extends BaseController
         );
     }
 
+    private function seqByType( $params ) {
+        Migrations::run( $params );       
+        $this->flashSession->success('The migration was executed successfully.');
+        return $this->redirect('migrations/list');
+    }
+    private function seqByTable( $params )
+    {
+        Migrations::run( $params );       
+        $this->flashSession->success('The migration was executed successfully.');
+        return $this->redirect('migrations/list');
+    }
     /**
      * @Route("/migrations/run", methods={"POST", "GET"}, name="migrations-run")
      */
     public function runAction()
     {
         if ($this->request->isPost()) {
+            
+            $params = [
+                            'config'        => $this->config,
+                            'directory'     => $this->request->getPost('basePath', 'string'),
+                            'tableName'     => '@', // @todo
+                            'migrationsDir' => $this->request->getPost('migrationsDir', 'string'),
+                        ];
+             $orderType = $this->request->getPost('orderType','string');
             try {
-                Migrations::run(
-                    [
-                        'config'        => $this->config,
-                        'directory'     => $this->request->getPost('basePath', 'string'),
-                        'tableName'     => '@', // @todo
-                        'migrationsDir' => $this->request->getPost('migrationsDir', 'string'),
-                    ]
-                );
-
-                $this->flashSession->success('The migration was executed successfully.');
-
-                return $this->redirect('migrations/list');
+                if (empty($orderType)) {
+                    $this->seqByTable($params);
+                }
+                else {
+                    $this->seqByType($params);
+                }
             } catch (BuilderException $e) {
                 $this->flash->error($e->getMessage());
             } catch (\Exception $e) {

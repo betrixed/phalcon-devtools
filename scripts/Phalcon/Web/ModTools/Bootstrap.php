@@ -16,7 +16,7 @@ namespace ModTools;
 use Phalcon\Mvc\Application as MvcApplication;
 use Phalcon\Mvc\Router;
 use Phalcon\Error\ErrorHandler;
-use Phalcon\Bot\RoutesUnpack;
+use Mod\RoutesUnpack;
 
 /**
  * WebTools for Phalcon/devtools
@@ -142,22 +142,6 @@ class Bootstrap {
         );
     }
 
-    public function moduleRouter() {
-        $ptoolsPath = $this->ptoolsPath;
-
-
-        $router = new Router(false);
-        $path = MODTOOLS_DIR . 'routes.php';
-
-        require $path;
-
-        $unpack = new RoutesUnpack($router, $this->moduleName, false);
-        $unpack->addRouteData($routeData);
-
-        $this->di->setShared(
-                'router', $router);
-    }
-
     /**
      * Bootstrap constructor.
      *
@@ -176,13 +160,12 @@ class Bootstrap {
         $ctx = $this->di->get('ctx');
         $this->moduleName = $ctx->getName();
         $moduleConfig = $ctx->activeModule;
-
-        $this->app->registerModules([
-            $this->moduleName => [
-                'path' => $moduleConfig->path,
-                'className' => $moduleConfig->className
-            ]
-        ]);
+        //$registerArray = $ctx->getRegisterArray();
+        
+        $this->app->registerModules(
+                [ $moduleConfig->alias => function() {
+                    // do nothing function
+                }]);
 
         (new ErrorHandler)->register();
 
@@ -192,7 +175,8 @@ class Bootstrap {
         }
         $this->initDispatcher();
         //$this->initRouter();
-        $this->moduleRouter();
+        $ctx->routerService();
+        
         $this->initTag(); // override webtools.php?_url=/
         $this->app->setEventsManager($this->di->getShared('eventsManager'));
 

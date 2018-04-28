@@ -34,6 +34,13 @@
                             <span class="help-block">The absolute path to the migrations directory</span>
                         </div>
                     </div>
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <div class="checkbox">
+                            <label for="staged">
+                                {{- check_field("orderType", "value": 1, "id": "ordered") ~ "Order update sequence by type - tables, indexes, data, foreign keys" -}}
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

@@ -87,8 +87,9 @@ class ControllersController extends BaseController
      * @Get("/controllers/edit/{file:[\w\d_.~%-]+}", name="controllers-edit")
      * @param string $file
      */
-    public function editAction($file)
+    public function editAction()
     {
+        $file = $this->request->get('file');
         if (empty($file) || !$fileName = rawurldecode($file)) {
             $this->flash->error('Controller could not be found.');
             $this->dispatcher->forward([

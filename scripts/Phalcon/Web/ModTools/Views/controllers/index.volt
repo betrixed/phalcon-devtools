@@ -41,7 +41,7 @@
                                 <td>{{ controller.owner }}</td>
                                 <td>{{ controller.modified_time }}</td>
                                 <td>
-                                    {{ link_to("controllers/edit/" ~ rawurlencode(controller.filename),
+                                    {{ link_to("controllers/edit?file=" ~ rawurlencode(controller.filename),
                                     '<i class="fa fa-pencil"></i>', 'class': 'btn btn-default btn-xs') }}
                                 </td>
                             </tr>

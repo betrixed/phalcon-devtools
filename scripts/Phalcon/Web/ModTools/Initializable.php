@@ -56,7 +56,8 @@ use Phalcon\Mvc\Router\Annotations as AnnotationsRouter;
 use Phalcon\Mvc\View\Engine\Volt\Extension\Php as PhpExt;
 use Phalcon\Annotations\Adapter\Memory as AnnotationsMemory;
 use Phalcon\Mvc\Dispatcher\ErrorHandler as DispatchErrorHandler;
-use Pcan\Config\ModuleContext;
+use Mod\Context as ModuleContext;
+use Mod\Path;
 
 /**
  * \Phalcon\Initializable
@@ -91,7 +92,11 @@ trait Initializable {
             /** @var DiInterface $this */
             $scanner = new ConfigScanner($basePath);
             $config = $scanner->load('config');
-
+            $configPath = $config->configPath;
+            
+            $database = Path::getConfig(Path::noEndSep($configPath) . DS . '/database.toml');
+            $config['database'] = $database->toArray();
+            
             if (ENV_PRODUCTION !== APPLICATION_ENV) {
                 $override = $scanner->scan(APPLICATION_ENV);
                 if ($override instanceof PhConfig) {
@@ -108,6 +113,10 @@ trait Initializable {
      * Initialize the Logger.
      */
     protected function initLogger() {
+        
+        if ($this->di->offsetExists('logger')) {
+            return; // gazumped
+        }
         $hostName = $this->hostName;
         $basePath = $this->basePath;
 
@@ -178,20 +187,13 @@ trait Initializable {
              */
             $volt = new VoltEngine($view, $di);
             $config = $this->getShared('config');
-
+            
+            $mod = $di->get('mod'); // get module configuration object
+            
+            $voltCacheDir = Path::endSep($mod->voltCache);
             // So much trouble for a volt cache directory
             // set as 'voltCacheDir'
 
-            $voltConfig = null;
-            if ($config->offsetExists('volt')) {
-                $voltConfig = $config->get('volt'); // this is the best
-            } elseif ($config->offsetExists('view')) {
-                $voltConfig = $config->get('view'); // 2nd best
-            }
-            $voltCacheDir = null;
-            if ($voltConfig instanceof PhConfig) {
-                $voltCacheDir = $voltConfig->get('cacheDir', '');
-            }
             if (empty($voltCacheDir)) {
                 $defaultCacheDir = sys_get_temp_dir() . DS . 'phalcon' . DS . 'volt'; // backstop
                 if ($config->offsetExists('application')) {
@@ -201,21 +203,11 @@ trait Initializable {
                     }
                 }
             }
-            // assume that $default is always writeable
-            if ($voltCacheDir !== $defaultCacheDir) {
-                if (!is_dir($voltCacheDir) || !is_writable($voltCacheDir)) {
-                    $this->di->getShared('logger')->warning(
-                            'Unable to initialize Volt cache dir: {cache}. Used temp path: {default}', [
-                        'cache' => $cacheDir,
-                        'default' => $defaultCacheDir
-                    ]);
-                    $voltCacheDir = $defaultCacheDir;
-                    if (!is_dir($voltCacheDir)) {
-                        mkdir($voltCacheDir, 0777, true);
-                    }
+            else {
+                if (!file_exists($voltCacheDir)) {
+                     mkdir($voltCacheDir, 0777, true);
                 }
             }
-
             if (!$voltConfig instanceof PhConfig) {
                 $voltConfig = new PhConfig([
                     'compiledExt' => '.php',
@@ -537,9 +529,9 @@ trait Initializable {
                 'db', function () {
             /** @var DiInterface $this */
             $em = $this->getShared('eventsManager');
-
-            if ($this->getShared('config')->offsetExists('database')) {
-                $config = $this->getShared('config')->get('database')->toArray();
+            $config = $this->getShared('config'); // whatever class this ends up in??
+            if ($config->offsetExists('database')) {
+                $config = $config->database->toArray();
             } else {
                 $dbname = sys_get_temp_dir() . DS . 'phalcon.sqlite';
                 $this->getShared('logger')->warning(
